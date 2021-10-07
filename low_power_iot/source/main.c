@@ -51,10 +51,12 @@
 #include "queue.h"
 #include "cy_tft.h" // Library for CY8CKIT-028-TFT
 #include "GUI.h" // Library for emWin
+#include "mtb_bmi160.h" // Library for Motion Sensor
 #include "image_splash.h"
 #include "capsense_task.h"
 #include "led_task.h"
 #include "ble_task.h"
+#include "accel_task.h"
 
 
 /*******************************************************************************
@@ -67,11 +69,13 @@
 #define TASK_CAPSENSE_PRIORITY      (1u)
 #define TASK_LED_PRIORITY           (1u)
 #define TASK_BLE_PRIORITY           (1u)
+#define TASK_ACCEL_PRIORITY         (1u)
 
 /* Stack sizes of user tasks in this project */
 #define TASK_CAPSENSE_STACK_SIZE    (configMINIMAL_STACK_SIZE)
 #define TASK_LED_STACK_SIZE         (configMINIMAL_STACK_SIZE)
 #define TASK_BLE_STACK_SIZE         (4u*configMINIMAL_STACK_SIZE)
+#define TASK_ACCEL_STACK_SIZE       (2u*configMINIMAL_STACK_SIZE)
 
 /* Queue lengths of message queues used in this project */
 #define SINGLE_ELEMENT_QUEUE        (1u)
@@ -175,6 +179,13 @@ int main(void)
         printf("Failed to create the BLE task!\r\n");
         CY_ASSERT(0u);
     }
+
+    if (pdPASS != xTaskCreate(task_accel, "Accel Task", TASK_ACCEL_STACK_SIZE,
+                              NULL, TASK_ACCEL_PRIORITY, NULL))
+	{
+		printf("Failed to create the Accel task!\r\n");
+		CY_ASSERT(0u);
+	}
 
     /* Start the RTOS scheduler. This function should never return */
     vTaskStartScheduler();
