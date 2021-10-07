@@ -49,6 +49,9 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
+#include "cy_tft.h" // Library for CY8CKIT-028-TFT
+#include "GUI.h" // Library for emWin
+#include "image_splash.h"
 #include "capsense_task.h"
 #include "led_task.h"
 #include "ble_task.h"
@@ -102,6 +105,12 @@ int main(void)
 
     /* Enable global interrupts */
     __enable_irq();
+
+    /* Init the display */
+    cy_tft_io_init();
+    GUI_Init();
+    GUI_Clear();
+    GUI_DrawBitmap(&Splash_Screen, 0, 0);
 
     /* Initialize retarget-io to use the debug UART port */
     result = cy_retarget_io_init( CYBSP_DEBUG_UART_TX, CYBSP_DEBUG_UART_RX,

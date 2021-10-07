@@ -80,6 +80,7 @@ VERBOSE=
 # added to the build
 #
 COMPONENTS=FREERTOS WICED_BLE
+COMPONENTS+=EMWIN_NOSNTS
 
 # Like COMPONENTS, but disable optional code that was enabled by default.
 DISABLE_COMPONENTS=
