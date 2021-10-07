@@ -155,7 +155,7 @@ void task_capsense(void* param)
     }
 
     /* Setup communication between Tuner GUI and PSoC 6 MCU */
-    tuner_init();
+    //tuner_init();
 
     /* Initialize CapSense block */
     status = capsense_init();
@@ -212,7 +212,7 @@ void task_capsense(void* param)
                         /* Establishes synchronized operation between the
                          * Capsese middleware and the CapSense Tuner tool.
                          */
-                        Cy_CapSense_RunTuner(&cy_capsense_context);
+                        //Cy_CapSense_RunTuner(&cy_capsense_context);
                         break;
                     }
                     /* Invalid command */
