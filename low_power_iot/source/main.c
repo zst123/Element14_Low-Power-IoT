@@ -86,6 +86,7 @@
 ******************************************************************************/
 /* This enables RTOS aware debugging. */
 volatile int uxTopUsedPriority;
+bool user_button_press_onboot;
 
 /******************************************************************************
  *                          Function Definitions
@@ -109,6 +110,10 @@ int main(void)
 
     /* Enable global interrupts */
     __enable_irq();
+
+    /* Initialize user button */
+    result = cyhal_gpio_init(CYBSP_USER_BTN, CYHAL_GPIO_DIR_INPUT, CYHAL_GPIO_DRIVE_NONE, false);
+    user_button_press_onboot = cyhal_gpio_read(CYBSP_USER_BTN) == false; // active low
 
     /* Init the display */
     cy_tft_io_init();

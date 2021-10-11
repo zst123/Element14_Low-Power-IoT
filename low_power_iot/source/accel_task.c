@@ -18,6 +18,8 @@
 /*******************************************************************************
  * Global variable
  ******************************************************************************/
+extern bool user_button_press_onboot;
+
 char task_accel_buffer[100];
 
 /* Motion sensor */
@@ -53,6 +55,27 @@ void task_accel(void* param)
     GUI_SetColor(GUI_BLACK);
     GUI_SetBkColor(GUI_WHITE);
 
+    // Button press on boot - enter data forwarding mode
+    long previous = xTaskGetTickCount();
+    if (user_button_press_onboot) {
+        GUI_DispStringAt("Data Forwarding Mode", 0, 200);
+
+        float scaled_x = 0;
+        float scaled_y = 0;
+        float scaled_z = 0;
+
+        mtb_bmi160_data_t data;
+        while (1) {
+            while ((xTaskGetTickCount() - previous) < 10);
+            previous = xTaskGetTickCount();
+
+            mtb_bmi160_read(&motion_sensor, &data);
+            scaled_x = data.accel.x / (32768.0 * 2.0); // Signed 16 bits scaled to 2g.
+            scaled_y = data.accel.y / (32768.0 * 2.0); // Signed 16 bits scaled to 2g.
+            scaled_z = data.accel.z / (32768.0 * 2.0); // Signed 16 bits scaled to 2g.
+            printf("%0.5f,%0.5f,%0.5f\n", scaled_x, scaled_y, scaled_z);
+        }
+    }
 
     /* Repeatedly running part of the task */
     mtb_bmi160_data_t data;
