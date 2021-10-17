@@ -482,9 +482,17 @@ $(CY_CONFIG_DIR)/.cylinker: CY_BUILD_mkdirs
 CY_BUILD_precompile: CY_BUILD_gensrc $(CY_CONFIG_DIR)/.cycompiler $(CY_CONFIG_DIR)/.cylinker
 	$(info Building $(words $(CY_BUILD_ALL_OBJ_FILES)) file(s))
 	$(CY_NOISE)$(CY_SEARCH_GENERATE_QBUILD)
-	$(CY_NOISE)echo $(CY_RECIPE_INCLUDES) | tr " " "\n" > $(CY_CONFIG_DIR)/inclist.rsp; \
-	 echo $(CY_BUILD_ALL_OBJ_FILES) | tr " " "\n"  > $(CY_CONFIG_DIR)/objlist.rsp; \
-	 echo $(CY_BUILD_ALL_LIB_FILES) | tr " " "\n"  > $(CY_CONFIG_DIR)/liblist.rsp;
+
+	# Fix "arguments too long" issue, by printing to a file directly
+	$(file >$(CY_CONFIG_DIR)/inclist.tmp.rsp, $(CY_RECIPE_INCLUDES))
+	cat $(CY_CONFIG_DIR)/inclist.tmp.rsp | tr " " "\n" >$(CY_CONFIG_DIR)/inclist.rsp
+
+	$(file >$(CY_CONFIG_DIR)/objlist.tmp.rsp, $(CY_BUILD_ALL_OBJ_FILES))
+	cat $(CY_CONFIG_DIR)/objlist.tmp.rsp | tr " " "\n" >$(CY_CONFIG_DIR)/objlist.rsp
+
+	$(file >$(CY_CONFIG_DIR)/liblist.tmp.rsp, $(CY_BUILD_ALL_LIB_FILES))
+	cat $(CY_CONFIG_DIR)/liblist.tmp.rsp | tr " " "\n" >$(CY_CONFIG_DIR)/liblist.rsp
+
 # Create an artifact sentinel file for shared libs and dependent apps
 ifneq ($(strip $(CY_BUILD_ALL_OBJ_FILES) $(CY_BUILD_ALL_LIB_FILES)),)
 	$(CY_NOISE)echo $(notdir $(CY_BUILD_TARGET)) > $(CY_CONFIG_DIR)/artifact.rsp
