@@ -1,0 +1,261 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    //
+    // NOTE for JLink users:
+    //
+    //    Please create the following setting in your VSCode User Settings or in
+    //    your global PATH.  Cortex-Debug needs to find the specific gdb-server
+    //    you want to use.
+    //
+    //       Windows     : "cortex-debug.JLinkGDBServerPath": "<JLinkInstallDir>/JLinkGDBServerCL"
+    //       Linux / Mac : "cortex-debug.JLinkGDBServerPath": "<JLinkInstallDir>/JLinkGDBServer"
+    //
+    //    User settings are located in:
+    //
+    //       Windows : %APPDATA%/Code/User/settings.json
+    //       Mac     : $HOME/Library/Application Support/Code/User/settings.json
+    //       Linux   : $HOME/.config/Code/User/settings.json
+    //
+    //    You can use the VSCode Settings UI to edit the files mentioned above.
+    //
+    //    For the JLink configurations in this file, the "device" name comes from
+    //    the list found here:
+    //       https://www.segger.com/downloads/supported-devices.php
+    //
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch PSoC6 &&CY_TARGET_PROCESSOR_NAME&& (KitProg3_MiniProg4)",
+            "type": "cortex-debug",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "executable": "&&CY_ELF_FILE&&",
+            "servertype": "openocd",
+            "searchDir": [
+                "${workspaceRoot}",
+                "${config:modustoolbox.toolsPath}/&&CY_OPENOCD_SCRIPTS_DIR&&/"
+            ],
+            "configFiles": [
+                "openocd.tcl"
+            ],
+            "overrideLaunchCommands": [
+                "set mem inaccessible-by-default off",
+                "-enable-pretty-printing",
+                "set remotetimeout 15",
+                // Comment this next line out if you don't want to reload program
+                "monitor program {&&CY_HEX_FILE&&}",
+                "monitor reset run",//PSoC6 Only//
+                "monitor sleep 200",//PSoC6 Only//
+                "monitor psoc6 reset_halt sysresetreq"//PSoC6 Only//
+                "monitor reset init"//PSoC64 Only//
+            ],
+            "numberOfProcessors": &&CY_PROCESSOR_COUNT&&,//PSoC6 Only//
+            "targetProcessor": &&CY_TARGET_PROCESSOR_NUMBER&&,//PSoC6 Only//  // Set to 0 for the CM0+, set to 1 for the CM4
+            "postStartSessionCommands": [       
+                // Needed if runToMain is false //PSoC6 Only//
+                // Following two commands are needed to get gdb and openocd and HW all in sync. //PSoC6 Only//
+                // Or, execution context (PC, stack, registers, etc.) look like they are from before reset. //PSoC6 Only//
+                // The stepi, is a pretend instruction that does not actually do a stepi, but MUST be done //PSoC6 Only//
+                // Its a documented workaround in openocd. Do a 'monitor help' to see more info //PSoC6 Only//
+                // //PSoC6 Only//
+                // An alternative command to use is "continue" instead of the following two //PSoC6 Only//
+                "monitor gdb_sync",//PSoC6 Only//
+                "stepi"//PSoC6 Only//
+            ],
+            "overrideRestartCommands": [
+                "monitor reset init",//PSoC6 Only//
+                "monitor reset run",//PSoC6 Only//
+                "monitor sleep 200",//PSoC6 Only//
+                "monitor psoc6 reset_halt sysresetreq"//PSoC6 Only//
+                "start"//PSoC64 Only//
+            ],
+            "postRestartSessionCommands": [
+                "monitor gdb_sync",//PSoC6 Only//
+                "stepi"//PSoC6 Only//
+            ],
+            // svdFile is optional, it can be very large.
+            "svdFile": "&&CY_SVD_FILE_NAME&&",
+            "runToMain": true,          // if true, program will halt at main. Not used for a restart
+            "preLaunchTask": "Build: Build [&&CY_CONFIG&&]",    // Set this to run a task from tasks.json
+                                                        // before starting a debug session
+            "showDevDebugOutput": false // When set to true, displays output of GDB.
+                                        // This is helpful when something is not working right
+        },
+        // When using 'attach', make sure your program is running on the board and that your
+        // executable matches the image in the chip exactly, or else strange things can happen
+        // with breakpoints, variables, etc.
+        {
+            "name": "Attach PSoC6 &&CY_TARGET_PROCESSOR_NAME&& (KitProg3_MiniProg4)",
+            "type": "cortex-debug",
+            "request": "attach",
+            "cwd": "${workspaceRoot}",
+            "executable": "&&CY_ELF_FILE&&",
+            "servertype": "&&CY_ATTACH_SERVER_TYPE&&",
+            "searchDir": [
+                "${workspaceRoot}",
+                "${config:modustoolbox.toolsPath}/&&CY_OPENOCD_SCRIPTS_DIR&&/"
+            ],
+            "openOCDPreConfigLaunchCommands": [
+                "set ENABLE_ACQUIRE 0"
+            ],
+            "configFiles": [
+                "openocd.tcl"
+            ],
+            "overrideAttachCommands": [
+                "set mem inaccessible-by-default off",
+                "-enable-pretty-printing"
+            ],
+            "numberOfProcessors": &&CY_PROCESSOR_COUNT&&,//PSoC6 Only//
+            "targetProcessor": &&CY_TARGET_PROCESSOR_NUMBER&&,//PSoC6 Only//  // Set to 0 for the CM0+, set to 1 for the CM4
+            "overrideRestartCommands": [
+                "monitor reset init",//PSoC6 Only//
+                "monitor reset run",//PSoC6 Only//
+                "monitor sleep 200",//PSoC6 Only//
+                "monitor psoc6 reset_halt sysresetreq"//PSoC6 Only//
+                "start"//PSoC64 Only//
+            ],
+            "postRestartSessionCommands": [
+                "monitor gdb_sync",//PSoC6 Only//
+                "stepi"//PSoC6 Only//
+            ],
+            // svdFile is optional, it can be very large.
+            "svdFile": "&&CY_SVD_FILE_NAME&&",
+            "showDevDebugOutput": false // When set to true, displays output of GDB.
+                                        // This is helpful when something is not working right
+        },
+        {
+            "name": "Erase (KitProg3_MiniProg4)",
+            "type": "cortex-debug",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "executable": "&&CY_HEX_FILE&&",
+            "servertype": "openocd",
+            "searchDir": [
+                "${workspaceRoot}",
+                "${config:modustoolbox.toolsPath}/&&CY_OPENOCD_SCRIPTS_DIR&&/"
+            ],
+            "openOCDPreConfigLaunchCommands": [
+                "set DISABLE_SMIF 1"
+            ],
+            "configFiles": [
+                "openocd.tcl"
+            ],
+            "overrideLaunchCommands": [
+                "monitor reset init",
+                "monitor psoc6 sflash_restrictions 1",
+                "monitor erase_all",
+                "quit"
+            ],
+            "numberOfProcessors": 2,//PSoC6 Only//
+            "showDevDebugOutput": false // When set to true, displays output of GDB.
+                                        // This is helpful when something is not working right
+        },
+        {
+            "name": "Program (KitProg3_MiniProg4)",
+            "type": "cortex-debug",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "executable": "&&CY_HEX_FILE&&",
+            "servertype": "openocd",
+            "searchDir": [
+                "${workspaceRoot}",
+                "${config:modustoolbox.toolsPath}/&&CY_OPENOCD_SCRIPTS_DIR&&/"
+            ],
+            "configFiles": [
+                "openocd.tcl"
+            ],
+            "overrideLaunchCommands": [
+                "monitor psoc6 sflash_restrictions 1",
+                "monitor program {&&CY_HEX_FILE&&}",
+                "monitor reset_config srst_only",
+                "monitor reset run",
+                "monitor &&CY_OPENOCD_CHIP&&.dap dpreg 0x04 0x00",
+                "quit"
+            ],
+            "numberOfProcessors": 2,//PSoC6 Only//
+            "preLaunchTask": "Build: Build [&&CY_CONFIG&&]",    // Set this to run a task from tasks.json
+                                                        // before device programming
+            "showDevDebugOutput": false // When set to true, displays output of GDB.
+                                        // This is helpful when something is not working right
+        },
+        {
+            "name": "Launch PSoC6 &&CY_TARGET_PROCESSOR_NAME&& (JLink)",
+            "type": "cortex-debug",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "executable": "&&CY_ELF_FILE&&",
+            "servertype": "jlink",
+            "device": "&&CY_DEVICE_DEBUG&&",
+            "preLaunchCommands": [
+                // Program via the hex file to get complete coverage
+                "exec-file &&CY_HEX_FILE&&"
+            ],
+            "demangle": true,
+            // svdFile is optional, it can be very large.
+            "svdFile": "&&CY_SVD_FILE_NAME&&",
+            "runToMain": true,          // if true, program will halt at main. Not used for a restart
+            "preLaunchTask": "Build: Build [&&CY_CONFIG&&]", // Set this to run a task from tasks.json before
+                                                     // starting a debug session
+            "showDevDebugOutput": false // When set to true, displays output of GDB.
+                                        // This is helpful when something is not working right
+        },
+        // When using 'attach', make sure your program is running on the board and that your
+        // executable matches the image in the chip exactly, or else strange things can happen
+        // with breakpoints, variables, etc.
+        {
+            "name": "Attach PSoC6 &&CY_TARGET_PROCESSOR_NAME&& (JLink)",
+            "type": "cortex-debug",
+            "request": "attach",
+            "cwd": "${workspaceRoot}",
+            "executable": "&&CY_ELF_FILE&&",
+            "servertype": "jlink",
+            "device": "&&CY_DEVICE_ATTACH&&",
+            "demangle": true,
+            // svdFile is optional, it can be very large.
+            "svdFile": "&&CY_SVD_FILE_NAME&&",
+            "showDevDebugOutput": false // When set to true, displays output of GDB.
+                                        // This is helpful when something is not working right
+        },
+        {
+            "name": "Erase (JLink)",
+            "type": "cortex-debug",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            // executable not needed but need some valid file to get the session to start
+            "executable": "&&CY_HEX_FILE&&",
+            "servertype": "jlink",
+            "device": "&&CY_DEVICE_PROGRAM&&",
+            "overrideLaunchCommands": [
+                "monitor reset 0",      // Reset both core and the peripherals
+                "monitor flash erase",
+                "monitor reset 2",      // Reset via the reset pin
+                "quit"
+            ],
+            "showDevDebugOutput": false // When set to true, displays output of GDB.
+                                        // This is helpful when something is not working right
+        },
+        {
+            "name": "Program (JLink)",
+            "type": "cortex-debug",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            // Program via the hex file to get complete coverage, no need for symbols
+            "executable": "&&CY_HEX_FILE&&",
+            "servertype": "jlink",
+            "device": "&&CY_DEVICE_PROGRAM&&",
+            "overrideLaunchCommands": [
+                "monitor reset 0",      // Reset both core and the peripherals
+                "-target-download",
+                "monitor reset 2",      // Reset via the reset pin
+                "monitor go",
+                "quit"
+            ],
+            "preLaunchTask": "Build: Build [&&CY_CONFIG&&]",    // Set this to run a task from tasks.json
+                                                        // before device programming
+            "showDevDebugOutput": false // When set to true, displays output of GDB.
+                                        // This is helpful when something is not working right
+        }
+    ]
+}

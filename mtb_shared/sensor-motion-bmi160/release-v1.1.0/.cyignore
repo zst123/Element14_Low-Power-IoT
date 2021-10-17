@@ -1,0 +1,3 @@
+docs
+$(SEARCH_BMI160_driver)/examples
+../BMI160_driver/examples
