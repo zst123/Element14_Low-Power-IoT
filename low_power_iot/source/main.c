@@ -58,7 +58,6 @@
 #include "ble_task.h"
 #include "accel_task.h"
 
-
 /*******************************************************************************
 *        Macro Definitions
 *******************************************************************************/
@@ -75,7 +74,7 @@
 #define TASK_CAPSENSE_STACK_SIZE    (configMINIMAL_STACK_SIZE)
 #define TASK_LED_STACK_SIZE         (configMINIMAL_STACK_SIZE)
 #define TASK_BLE_STACK_SIZE         (4u*configMINIMAL_STACK_SIZE)
-#define TASK_ACCEL_STACK_SIZE       (2u*configMINIMAL_STACK_SIZE)
+#define TASK_ACCEL_STACK_SIZE       (4u*configMINIMAL_STACK_SIZE)
 
 /* Queue lengths of message queues used in this project */
 #define SINGLE_ELEMENT_QUEUE        (1u)
