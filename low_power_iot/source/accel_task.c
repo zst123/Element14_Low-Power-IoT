@@ -108,7 +108,7 @@ void task_accel(void* param)
     // Edge Impulse Inference
     while (1) {
 
-        for (int i = 0; i < 300; i += 3) {
+        for (int i = 0; i < 150; i += 3) {
             // Delay of 10ms (100 Hz frequency)
             while ((xTaskGetTickCount() - previous) < 10);
             previous = xTaskGetTickCount();
@@ -118,6 +118,10 @@ void task_accel(void* param)
             features[i + 0] = data.accel.x / (32768.0 * 2.0);
             features[i + 1] = data.accel.y / (32768.0 * 2.0);
             features[i + 2] = data.accel.z / (32768.0 * 2.0);
+
+            features[150 + i + 0] = data.accel.x / (32768.0 * 2.0);
+            features[150 + i + 1] = data.accel.y / (32768.0 * 2.0);
+            features[150 + i + 2] = data.accel.z / (32768.0 * 2.0);
         }
 
         // Do classification

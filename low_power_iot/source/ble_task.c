@@ -125,7 +125,7 @@ void task_ble(void* param)
     {
          /* Block until a command has been received over queue */
         rtos_api_result = xQueueReceive(ble_capsense_data_q, &ble_capsense_data,
-                                        500);
+                                        50);
         /* Command has been received from queue */
         if(pdPASS == rtos_api_result)
         {
@@ -134,7 +134,7 @@ void task_ble(void* param)
         }
 
         rtos_api_result = xQueueReceive(ble_myservice_data_q, &ble_myservice_data,
-                                        500);
+                                        50);
         /* Command has been received from queue */
         if(pdPASS == rtos_api_result)
         {
