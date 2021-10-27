@@ -77,6 +77,7 @@ typedef struct
  * Global variable
  ******************************************************************************/
 extern QueueHandle_t ble_capsense_data_q;
+extern QueueHandle_t ble_myservice_data_q;
 
 
 /*******************************************************************************

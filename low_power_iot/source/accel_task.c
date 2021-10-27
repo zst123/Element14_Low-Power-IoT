@@ -6,6 +6,7 @@
 #include "cycfg.h"
 #include "cy_retarget_io.h"
 #include "accel_task.h"
+#include "ble_task.h"
 #include "cy_tft.h" // Library for CY8CKIT-028-TFT
 #include "GUI.h" // Library for emWin
 #include "mtb_bmi160.h" // Library for Motion Sensor
@@ -100,6 +101,10 @@ void task_accel(void* param)
     int total_length = sizeof(features) / sizeof(features[0]);
     ei_impulse_result_t ei_result = { 0 };
 
+    // BLE service data
+    static myservice_data_t ble_myservice_data = {0};
+    static char gesture_text[20];
+
     // Edge Impulse Inference
     while (1) {
 
@@ -121,6 +126,23 @@ void task_accel(void* param)
             &get_feature_data,
             &ei_result,
             true);
+
+        // Find the largest value
+        float max_value = 0;
+        for (size_t ix = 0; ix < EI_CLASSIFIER_LABEL_COUNT; ix++) {
+            float current = ei_result.classification[ix].value;
+            char * label = (char *) ei_result.classification[ix].label;
+            if (current > max_value) {
+                max_value = current;
+                strncpy(gesture_text, label, 20);
+            }
+        }
+
+        // Update gestures if it crosses threshold
+        if (max_value > 0.6) {
+            ble_myservice_data.gesture_text = &gesture_text[0];
+            xQueueSendToBack(ble_myservice_data_q, &ble_myservice_data, 0u);
+        }
 
         // Print to screen
         for (size_t ix = 0; ix < EI_CLASSIFIER_LABEL_COUNT; ix++) {

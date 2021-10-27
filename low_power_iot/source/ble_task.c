@@ -52,6 +52,7 @@
 #include "app_platform_cfg.h"
 #include "wiced_bt_stack.h"
 #include "ble_task.h"
+#include "accel_task.h"
 
 /*******************************************************************************
 * Function Prototypes
@@ -71,17 +72,20 @@ static wiced_bt_gatt_status_t ble_app_gatt_read_handler( wiced_bt_gatt_read_t *p
 static wiced_bt_gatt_status_t ble_app_gatt_write_handler( wiced_bt_gatt_write_t *p_wriet_req);
 static void ble_print_bd_address(wiced_bt_device_address_t bdadr);
 void ble_send_notification(void);
+void myservice_send_notification(void);
 
 /*******************************************************************************
  * Global variable
  ******************************************************************************/
 /* Queue handle for ble app data */
 QueueHandle_t ble_capsense_data_q;
+QueueHandle_t ble_myservice_data_q;
 
 /* Holds the connection ID */
 volatile uint16_t ble_connection_id = 0;
 /* Holds the capsense data */
 ble_capsense_data_t ble_capsense_data;
+myservice_data_t ble_myservice_data;
 /*******************************************************************************
 * Function Name: task_ble
 ********************************************************************************
@@ -121,13 +125,24 @@ void task_ble(void* param)
     {
          /* Block until a command has been received over queue */
         rtos_api_result = xQueueReceive(ble_capsense_data_q, &ble_capsense_data,
-                                                                portMAX_DELAY);
+                                        500);
         /* Command has been received from queue */
         if(pdPASS == rtos_api_result)
         {
             ble_send_notification();
 
         }
+
+        rtos_api_result = xQueueReceive(ble_myservice_data_q, &ble_myservice_data,
+                                        500);
+        /* Command has been received from queue */
+        if(pdPASS == rtos_api_result)
+        {
+            myservice_send_notification();
+
+        }
+
+
     }
 }
 
@@ -655,6 +670,30 @@ void ble_send_notification(void)
     }
 }
 
+void myservice_send_notification(void)
+{
+    wiced_bt_gatt_status_t status = WICED_BT_GATT_ERROR;
+
+    if((GATT_CLIENT_CONFIG_NOTIFICATION == \
+                                    app_myservice_gesture_client_char_config[0])
+                                    && (0 != ble_connection_id))
+    {
+        strncpy((char * restrict) app_myservice_gesture,
+                (const char * restrict) ble_myservice_data.gesture_text,
+                app_gatt_db_ext_attr_tbl[6].max_len);
+        status = wiced_bt_gatt_send_notification(
+                                    ble_connection_id,
+                                    HDLC_MYSERVICE_GESTURE_VALUE,
+                                    app_gatt_db_ext_attr_tbl[6].cur_len,
+                                    app_gatt_db_ext_attr_tbl[6].p_data);
+
+        if(WICED_BT_GATT_SUCCESS != status)
+        {
+           printf("Sending CapSense slider notification failed\r\n");
+        }
+
+    }
+}
 
 /*******************************************************************************
 * Function Name: ble_print_bd_address()

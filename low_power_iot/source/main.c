@@ -159,6 +159,14 @@ int main(void)
         CY_ASSERT(0u);
     }
 
+    ble_myservice_data_q  = xQueueCreate(SINGLE_ELEMENT_QUEUE,
+                                     sizeof(ble_capsense_data_t));
+    if(NULL == ble_myservice_data_q)
+    {
+        printf("Failed to create the Queue!\r\n");
+        CY_ASSERT(0u);
+    }
+
     /* Create the user tasks. See the respective task definition for more
     * details of these tasks.
     */
