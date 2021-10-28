@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+</head>
+
+
+<body style="text-align: center;">
+    <script type="text/javascript">
+        let SERVICE_CAPSENSE =     '0003cab5-0000-1000-8000-00805f9b0131';
+        let CHAR_CAPSENSE_SLIDER = '0003caa2-0000-1000-8000-00805f9b0131';
+        let SERVICE_GESTURE =      'ef603193-7ec1-4825-93dc-a3c43dd45f05';
+        let CHAR_GESTURE_GESTURE = 'ef603194-7ec1-4825-93dc-a3c43dd45f05';
+
+        function charHandler(event) {
+            let serviceUuid = event.currentTarget.service.uuid;
+            let charUuid = event.currentTarget.uuid;
+
+            if (charUuid == CHAR_CAPSENSE_SLIDER) {
+                let value = event.target.value.getUint8();
+                console.log('Received CapSense value: ' + value);
+                capsenseHandler(value);
+            }
+            if (charUuid == CHAR_GESTURE_GESTURE) {
+                let value = String.fromCharCode.apply(String, new Uint8Array(event.target.value.buffer));
+                console.log('Received Gesture value: ' + value);
+                gestureHandler(value);
+            }
+        }
+
+        function connect() {
+            navigator.bluetooth.requestDevice({
+                acceptAllDevices: true,
+                optionalServices: [SERVICE_CAPSENSE, SERVICE_GESTURE]
+            })
+            .then(device => device.gatt.connect())
+            .then(server => server.getPrimaryServices())
+            .then(services => {
+                return services.map(service => service.getCharacteristics());
+            })
+            .then(service_char_array => {
+                service_char_array.forEach(promise => {
+                    promise.then(characteristics => {
+                        characteristics.forEach(characteristic => {
+                            console.log("Subscribing to:" + characteristic.uuid);
+                            characteristic.startNotifications();
+                            characteristic.addEventListener('characteristicvaluechanged', charHandler);
+                        });
+                    });
+                });                
+            })
+            .catch(error => { console.error(error); });
+        }
+
+        var scale = 1;
+        var rotate = 0;
+        function iframe_reload() {
+            document.getElementById('myiframe').src = document.getElementById('myiframe').src;
+            document.getElementById('myiframe').style.opacity = 0;
+            document.getElementById('myiframe').onload = function() {
+                document.getElementById('myiframe').style.opacity = 1;
+            };
+        }
+
+        function iframe_transform(scale, rotate) {
+            document.getElementById('myiframe').style.transform = "scale(" + scale + ") rotate(" + rotate + "deg)";
+        }
+
+        function capsenseHandler(value) {
+            scale = 0.5 + 0.5 * (value * 0.01);
+            iframe_transform(scale, rotate);
+            document.getElementById('pa').innerText = "CapSense: " + value + "%";
+        }
+        function gestureHandler(value) {
+            if (value.startsWith("idle")) {
+                document.getElementById('pb').innerText = " ";
+            } else if (value.startsWith("flick")) {
+                iframe_reload();
+                document.getElementById('pb').innerText = "Flick Gesture";
+            } else if (value.startsWith("shake")) {
+                rotate += 90;
+                rotate %= 360;
+                iframe_transform(scale, rotate+0.1);
+                document.getElementById('pb').innerText = "Shake Gesture";
+            }
+        }
+
+    </script>
+
+    <button onclick="connect()">Connect BLE</button>
+    <br>
+    <p id="px" style="font-size: 36px; font-weight: bold; margin: 0;"> Element14 <br> Low Power IoT Design Challenge </p>
+    <br>
+
+    <style type="text/css">
+        iframe {
+            -webkit-transition: all 0.2s ease-in-out;
+            -moz-transition: all 0.2s ease-in-out;
+            -o-transition: all 0.2s ease-in-out;
+            transition: all 0.2s ease-in-out;
+        }
+    </style>
+
+    <iframe id="myiframe" style="border: none; border-radius: 75px;" src="https://picsum.photos/700/700" width="700" height="700">
+    </iframe>
+
+    <p id="pa" style="font-size: 48px; font-weight: bold; margin: 0;"> * </p>
+    <p id="pb" style="font-size: 48px; font-weight: bold; margin: 0;"> * </p>
+
+</body>
+
+
+</html>
